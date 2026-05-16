@@ -23,5 +23,7 @@ class Camera:
         self.ndc_matrix = np.array([[2 / width, 0.0], [0.0, 2 / height]])
 
 
-class Time:
-    pass
+class DeltaTime:
+    def __init__(self):
+        self._last_timepoint = None
+        self.value = 0.0

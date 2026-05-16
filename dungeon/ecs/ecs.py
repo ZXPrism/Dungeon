@@ -106,7 +106,7 @@ class App:
         clock = pygame.time.Clock()
 
         while self._running:
-            dt = clock.tick(FPS) / 1000
+            clock.tick(FPS)
 
             self._run_systems(self._systems[Schedule.UpdateHighPriority])
             self._run_systems(self._systems[Schedule.Update])
