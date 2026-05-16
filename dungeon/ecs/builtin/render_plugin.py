@@ -37,8 +37,8 @@ def render(query: Query[Transform, Texture], res_camera: Res[Camera]):
         rect = pygame.Rect(
             rect_verts_viewport[0][0],
             rect_verts_viewport[0][1],
-            abs(rect_verts_viewport[1][0] - rect_verts_viewport[0][0]),
-            abs(rect_verts_viewport[1][1] - rect_verts_viewport[2][1]),
+            rect_verts_viewport[1][0] - rect_verts_viewport[0][0],
+            rect_verts_viewport[2][1] - rect_verts_viewport[1][1],
         )
 
         surface = pygame.transform.scale(texture.data, (rect.w, rect.h))
@@ -49,6 +49,9 @@ def render(query: Query[Transform, Texture], res_camera: Res[Camera]):
 
 class RenderPlugin(Plugin):
     def build(self, app: App):
-        app.insert_resource(Camera(np.zeros((2,)), 2.0, 2.0))
+        camera_height = 16.0
+        app.insert_resource(
+            Camera(np.zeros((2,)), camera_height * W / H, camera_height)
+        )
         app.add_system(Schedule.StartUp, render_setup)
         app.add_system(Schedule.Update, render)
