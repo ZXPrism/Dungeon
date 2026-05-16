@@ -31,20 +31,9 @@ def render(query: Query[Transform, Texture], res_input: Res[Input]):
     screen.fill((0, 0, 0))
 
     for transform, texture in query:
-        pos = transform.position
-
-        input_state = res_input.data
-        if input_state.just_pressed(pygame.K_w):
-            pos[1] += 1.0
-        elif input_state.just_pressed(pygame.K_s):
-            pos[1] -= 1.0
-        elif input_state.just_pressed(pygame.K_a):
-            pos[0] -= 1.0
-        elif input_state.just_pressed(pygame.K_d):
-            pos[0] += 1.0
-
         rect_verts_world = (
-            np.array([[-0.5, 0.5], [0.5, 0.5], [0.5, -0.5], [-0.5, -0.5]]) + pos
+            np.array([[-0.5, 0.5], [0.5, 0.5], [0.5, -0.5], [-0.5, -0.5]])
+            + transform.position
         )
         rect_verts_camera = rect_verts_world - camera_pos
         rect_verts_ndc = rect_verts_camera @ ndc

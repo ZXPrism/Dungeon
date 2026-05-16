@@ -1,7 +1,7 @@
 import pygame
 
 from typing import get_type_hints, get_origin, get_args
-from rich import print
+from collections.abc import Callable
 from dungeon.ecs.plugin import Plugin
 from dungeon.ecs.query import Query
 from dungeon.ecs.resource import Res
@@ -14,7 +14,7 @@ class App:
     def __init__(self, title: str):
         self._entities: dict[int, dict[type, object]] = {}
         self._next_id = 0
-        self._systems: dict[Schedule, list[tuple[callable, list]]] = {}
+        self._systems: dict[Schedule, list[tuple[Callable, list]]] = {}
         self._systems[Schedule.StartUp] = []
         self._systems[Schedule.UpdateHighPriority] = []
         self._systems[Schedule.Update] = []
@@ -40,7 +40,7 @@ class App:
         plugin.build(self)
         return self
 
-    def add_system(self, schedule: Schedule, system: callable):
+    def add_system(self, schedule: Schedule, system: Callable):
         type_hints = get_type_hints(system)
         queries = []
         query_app = False
@@ -70,7 +70,7 @@ class App:
 
         self._systems[schedule].append((system, queries))
 
-    def _run_systems(self, systems: list[tuple[callable, list]]):
+    def _run_systems(self, systems: list[tuple[Callable, list]]):
         for system, queries in systems:
             type_hints = get_type_hints(system)
             args = []
