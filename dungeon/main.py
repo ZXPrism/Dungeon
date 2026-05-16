@@ -7,16 +7,12 @@ import io
 import pygame
 import numpy as np
 
-from dungeon.ecs.ecs import App
-from dungeon.ecs.plugin import Plugin
+from dungeon.ecs import *
 from dungeon.ecs.builtin.component import Transform, Texture
-from dungeon.ecs.query import Query
-from dungeon.ecs.resource import Res
-from dungeon.ecs.builtin.resource import Input, Camera
+from dungeon.ecs.builtin.resource import Input
 from dungeon.ecs.builtin.render_plugin import RenderPlugin
 from dungeon.ecs.builtin.input_plugin import InputPlugin
 from dungeon.ecs.builtin.time_plugin import TimePlugin
-from dungeon.ecs.schedule import Schedule
 
 HERO_SIZE = (64, 64)
 HERO_URL = f"https://picsum.photos/{HERO_SIZE[0]}/{HERO_SIZE[1]}"

@@ -7,3 +7,6 @@ A simple dungeon game written in python, since `2026.05.15`.
   - You may find something familiar...
 - Basic ECS
   - I love data driven!
+
+# Code Style
+- No relative imports

@@ -2,7 +2,6 @@ import time
 
 from dungeon.ecs.plugin import Plugin
 from dungeon.ecs.schedule import Schedule
-from dungeon.ecs.query import Query
 from dungeon.ecs.resource import Res
 from dungeon.ecs.builtin.resource import DeltaTime
 from dungeon.ecs.ecs import App
