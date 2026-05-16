@@ -1,3 +1,8 @@
+import numpy as np
+
+from dungeon.type import vec2
+
+
 class Input:
     def __init__(self):
         self.key_just_pressed = -1
@@ -13,7 +18,9 @@ class Input:
 
 
 class Camera:
-    pass
+    def __init__(self, position: vec2, width: float, height: float):
+        self.position = position
+        self.ndc_matrix = np.array([[2 / width, 0.0], [0.0, 2 / height]])
 
 
 class Time:
