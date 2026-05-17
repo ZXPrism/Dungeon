@@ -22,4 +22,4 @@ def resolve_input(app: App, res_input: Res[Input]):
 class InputPlugin(Plugin):
     def build(self, app: App):
         app.insert_resource(Input())
-        app.add_system(Schedule.UpdateHighPriority, resolve_input)
+        app.add_system(Schedule.LogicalUpdateHighPriority, resolve_input)

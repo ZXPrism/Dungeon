@@ -66,8 +66,8 @@ def show_dt(res_delta_time: Res[DeltaTime]):
 class GameCore(Plugin):
     def build(self, app: App):
         app.add_system(Schedule.StartUp, setup)
-        app.add_system(Schedule.Update, control)
-        app.add_system(Schedule.Update, show_dt)
+        app.add_system(Schedule.LogicalUpdate, control)
+        app.add_system(Schedule.LogicalUpdate, show_dt)
 
 
 def main():

@@ -135,4 +135,4 @@ class RenderPlugin(Plugin):
                 quad_program=quad_program,
             )
         )
-        app.add_system(Schedule.Update, render)
+        app.add_system(Schedule.RenderUpdate, render)

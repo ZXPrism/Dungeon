@@ -18,5 +18,5 @@ def update_time(res_delta_time: Res[DeltaTime]):
 
 class TimePlugin(Plugin):
     def build(self, app: App):
-        app.add_system(Schedule.UpdateHighPriority, update_time)
+        app.add_system(Schedule.LogicalUpdateHighPriority, update_time)
         app.insert_resource(DeltaTime())

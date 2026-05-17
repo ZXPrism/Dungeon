@@ -14,8 +14,9 @@ class App:
         self._next_id = 0
         self._systems: dict[Schedule, list[tuple[Callable, list]]] = {}
         self._systems[Schedule.StartUp] = []
-        self._systems[Schedule.UpdateHighPriority] = []
-        self._systems[Schedule.Update] = []
+        self._systems[Schedule.LogicalUpdateHighPriority] = []
+        self._systems[Schedule.LogicalUpdate] = []
+        self._systems[Schedule.RenderUpdate] = []
         self._resources: dict[type, object] = {}
         self._running = True
 
@@ -106,7 +107,8 @@ class App:
         while self._running:
             clock.tick(60)
 
-            self._run_systems(self._systems[Schedule.UpdateHighPriority])
-            self._run_systems(self._systems[Schedule.Update])
+            self._run_systems(self._systems[Schedule.LogicalUpdateHighPriority])
+            self._run_systems(self._systems[Schedule.LogicalUpdate])
+            self._run_systems(self._systems[Schedule.RenderUpdate])
 
         pygame.quit()
