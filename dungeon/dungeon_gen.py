@@ -5,7 +5,7 @@ import numpy as np
 from enum import IntEnum
 from dataclasses import dataclass
 from dungeon.ecs import *
-from dungeon.ecs.builtin.component import Transform, Texture
+from dungeon.ecs.builtin.component import Transform, Texture, Layer
 
 
 @dataclass
@@ -94,11 +94,13 @@ def dungeon_gen(app: App, query: Res[DungeonConfig]):
                 app.spawn(
                     Transform(np.array([x, y]), np.array([1.0, 1.0])),
                     Texture(floor_colors[regions[y][x]]),
+                    Layer(id=2),
                 )
             elif dungeon[y][x] == TileType.EMPTY:
                 app.spawn(
                     Transform(np.array([x, y]), np.array([1.0, 1.0])),
                     Texture(empty_color),
+                    Layer(id=2),
                 )
 
 

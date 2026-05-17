@@ -9,7 +9,7 @@ import pygame
 import numpy as np
 
 from dungeon.ecs import *
-from dungeon.ecs.builtin.component import Transform, Texture
+from dungeon.ecs.builtin.component import Transform, Texture, Layer
 from dungeon.ecs.builtin.resource import DeltaTime, Input, Camera
 from dungeon.ecs.builtin.render_plugin import RenderPlugin
 from dungeon.ecs.builtin.input_plugin import InputPlugin
@@ -35,6 +35,7 @@ def setup(app: App):
         Hero(),
         Transform(np.array([0.0, 0.0]), np.array([1.0, 1.0])),
         Texture(np.array((0, 255, 0, 255)) / 255),
+        Layer(id=1),
     )
 
 

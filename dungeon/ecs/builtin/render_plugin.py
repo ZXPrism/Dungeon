@@ -4,7 +4,7 @@ import moderngl
 
 from dataclasses import dataclass
 from dungeon.ecs.query import Query
-from dungeon.ecs.builtin.component import Transform, Texture
+from dungeon.ecs.builtin.component import Transform, Texture, Layer
 from dungeon.ecs.resource import Res
 from dungeon.ecs.builtin.resource import Camera
 from dungeon.ecs.plugin import Plugin
@@ -33,7 +33,7 @@ class RenderState:
 
 
 def render(
-    query: Query[Transform, Texture],
+    query: Query[Transform, Texture, Layer],
     res_camera: Res[Camera],
     res_render_state: Res[RenderState],
 ):
@@ -53,7 +53,15 @@ def render(
         quad_instance_vbo.orphan(new_capacity * INSTANCE_DTYPE.itemsize)
 
     instance_data = np.empty(n_instance, dtype=INSTANCE_DTYPE)
-    for i, (transform, texture) in enumerate(query):
+
+    # Index sort on layer id
+    indices = [i for i in range(n_instance)]
+    indices.sort(key=lambda x: query[x][2].id, reverse=True)
+
+    for i in range(n_instance):
+        entry = query[indices[i]]
+        transform = entry[0]
+        texture = entry[1]
         instance_data[i]["pos"] = transform.position
         instance_data[i]["scale"] = transform.scale
         instance_data[i]["color"] = texture.color
@@ -62,8 +70,6 @@ def render(
     render_state.quad_program["view"].write(camera.view.tobytes())
     render_state.quad_program["projection"].write(camera.projection.tobytes())
     render_state.quad_vao.render(instances=n_instance)
-
-    # TODO reorder based on layer
 
     pygame.display.flip()
 

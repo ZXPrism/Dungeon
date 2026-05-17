@@ -10,3 +10,6 @@ class Query[*Ts]:
 
     def __len__(self):
         return len(self._rows)
+
+    def __getitem__(self, index: int) -> tuple[*Ts]:
+        return self._rows[index]

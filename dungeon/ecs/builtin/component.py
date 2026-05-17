@@ -13,3 +13,8 @@ class Transform:
 @dataclass
 class Texture:
     color: vec4  # HACK
+
+
+@dataclass
+class Layer:
+    id: int  # small -- foreground, large -- background
