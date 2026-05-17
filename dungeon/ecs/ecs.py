@@ -7,8 +7,6 @@ from dungeon.ecs.query import Query
 from dungeon.ecs.resource import Res
 from dungeon.ecs.schedule import Schedule
 
-FPS = 60
-
 
 class App:
     def __init__(self, title: str):
@@ -106,7 +104,7 @@ class App:
         clock = pygame.time.Clock()
 
         while self._running:
-            clock.tick(FPS)
+            clock.tick(60)
 
             self._run_systems(self._systems[Schedule.UpdateHighPriority])
             self._run_systems(self._systems[Schedule.Update])

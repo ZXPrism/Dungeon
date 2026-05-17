@@ -31,12 +31,10 @@ def fetch_image(url: str) -> pygame.Surface:
 
 
 def setup(app: App):
-    hero_texture = pygame.Surface((1, 1))
-    hero_texture.fill((255, 0, 0))
     hero_entity = app.spawn(
         Hero(),
         Transform(np.array([0.0, 0.0]), np.array([1.0, 1.0])),
-        Texture(hero_texture),
+        Texture(np.array((0, 255, 0, 255)) / 255),
     )
 
 
@@ -45,7 +43,6 @@ def control(
 ):
     for _, transform in query:
         pos = transform.position
-        res_camera.data.position = pos
 
         input_state = res_input.data
         if input_state.just_pressed(pygame.K_w):
@@ -56,6 +53,8 @@ def control(
             pos[0] -= 1.0
         elif input_state.just_pressed(pygame.K_d):
             pos[0] += 1.0
+
+        res_camera.data.position = pos
 
 
 def show_dt(res_delta_time: Res[DeltaTime]):

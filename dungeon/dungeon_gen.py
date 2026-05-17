@@ -81,25 +81,24 @@ def dungeon_gen(app: App, query: Res[DungeonConfig]):
     # 4. Remove dead ends
 
     # Generate debug color for each region
-    floor_textures = []
+    floor_colors = []
     for _ in range(current_region + 1):
-        texture = pygame.Surface((1, 1))
-        texture.fill(np.random.randint(0, 255, (3,)))
-        floor_textures.append(texture)
-    empty_texture = pygame.Surface((1, 1))
-    empty_texture.fill((50, 50, 50))
+        floor_color = np.ones((4,)) * 255.0
+        floor_color[:3] = np.random.randint(0, 255, (3,)) / 255
+        floor_colors.append(floor_color)
+    empty_color = np.array((50, 50, 50, 255)) / 255
 
     for y in range(config.dungeon_height):
         for x in range(config.dungeon_width):
             if dungeon[y][x] == TileType.FLOOR:
                 app.spawn(
                     Transform(np.array([x, y]), np.array([1.0, 1.0])),
-                    Texture(floor_textures[regions[y][x]]),
+                    Texture(floor_colors[regions[y][x]]),
                 )
             elif dungeon[y][x] == TileType.EMPTY:
                 app.spawn(
                     Transform(np.array([x, y]), np.array([1.0, 1.0])),
-                    Texture(empty_texture),
+                    Texture(empty_color),
                 )
 
 

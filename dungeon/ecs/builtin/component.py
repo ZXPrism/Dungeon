@@ -1,7 +1,7 @@
 import pygame
 
 from dataclasses import dataclass
-from dungeon.type import vec2
+from dungeon.type import vec2, vec4
 
 
 @dataclass
@@ -12,4 +12,4 @@ class Transform:
 
 @dataclass
 class Texture:
-    data: pygame.Surface
+    color: vec4  # HACK
