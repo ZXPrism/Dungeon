@@ -76,7 +76,7 @@ def main():
 
     app = App("Dungeon")
     app.add_plugin(TimePlugin())
-    app.add_plugin(RenderPlugin())
+    app.add_plugin(RenderPlugin(width=1280, height=720))
     app.add_plugin(InputPlugin())
     app.add_plugin(GameCore())
     app.add_plugin(DungeonGen())
