@@ -10,3 +10,9 @@ A simple dungeon game written in python, since `2026.05.15`.
 
 # Code Style
 - No relative imports
+
+# Dedication
+- world
+  - for being there
+- https://journal.stuffwithstuff.com/2014/12/21/rooms-and-mazes/
+  - for inspiration on dungeon generation

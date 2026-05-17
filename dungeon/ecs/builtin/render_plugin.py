@@ -9,8 +9,8 @@ from dungeon.ecs.plugin import Plugin
 from dungeon.ecs.schedule import Schedule
 from dungeon.ecs.ecs import App
 
-W = 800
-H = 600
+W = 1280
+H = 720
 
 
 def render_setup():
