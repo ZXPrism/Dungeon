@@ -3,8 +3,6 @@ from rich.traceback import install
 install(show_locals=True)
 
 import random
-import urllib.request
-import io
 import pygame
 import numpy as np
 
@@ -16,18 +14,11 @@ from dungeon.ecs.builtin.input_plugin import InputPlugin
 from dungeon.ecs.builtin.time_plugin import TimePlugin
 from dungeon.dungeon_gen import DungeonGen
 
-HERO_SIZE = (64, 64)
-HERO_URL = f"https://picsum.photos/{HERO_SIZE[0]}/{HERO_SIZE[1]}"
+VERSION = "Dungeon v0.1.0-b260518"
 
 
 class Hero:
     pass
-
-
-def fetch_image(url: str) -> pygame.Surface:
-    with urllib.request.urlopen(url) as resp:
-        data = resp.read()
-    return pygame.image.load(io.BytesIO(data)).convert_alpha()
 
 
 def setup(app: App):
@@ -57,11 +48,13 @@ def control(
 
         res_camera.data.position = pos
 
+        # TODO transition on move (both hero & camera)
+
 
 def show_dt(res_delta_time: Res[DeltaTime]):
     dt = res_delta_time.data.value
     fps = 1.0 / (dt + 1e-7)
-    pygame.display.set_caption(f"Dungeon v0.1.0-b260517 [dt={dt:.3f} | fps={fps:.0f}]")
+    pygame.display.set_caption(f"{VERSION} [dt={dt:.3f} | fps={fps:.0f}]")
 
 
 class GameCore(Plugin):

@@ -94,7 +94,7 @@ class RenderPlugin(Plugin):
         ctx.enable(moderngl.BLEND)
         ctx.blend_func = moderngl.SRC_ALPHA, moderngl.ONE_MINUS_SRC_ALPHA
 
-        camera_height = 16.0
+        camera_height = 48.0
         aspect_ratio = self.width / self.height
         app.insert_resource(
             Camera(np.zeros((2,)), camera_height * aspect_ratio, camera_height)

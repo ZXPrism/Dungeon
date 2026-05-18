@@ -112,3 +112,6 @@ class App:
             self._run_systems(self._systems[Schedule.RenderUpdate])
 
         pygame.quit()
+
+
+# TODO support despawn entities / remove res
