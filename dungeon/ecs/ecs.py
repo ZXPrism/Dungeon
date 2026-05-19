@@ -28,6 +28,7 @@ class App:
         self._systems[Schedule.LogicalUpdateHighPriority] = []
         self._systems[Schedule.LogicalUpdate] = []
         self._systems[Schedule.RenderUpdate] = []
+        self._query_cache: dict[Callable, Query] = {}
         self._resources: dict[type, object] = {}
         self._deferred_actions = []
         self._running = False
@@ -54,12 +55,16 @@ class App:
             raise RuntimeError("Detected duplicate components!")
         self._entities[entity_id][Entity] = Entity(id=entity_id)
 
+        self._query_cache.clear()
+
     def despawn(self, entity_id: int):
         self._check_if_entity_exist(entity_id)
         self._deferred_actions.append(lambda: self._despawn(entity_id))
 
     def _despawn(self, entity_id: int):
         self._entities.pop(entity_id)
+
+        self._query_cache.clear()
 
     def add_component(self, entity_id: int, *components: object):
         self._check_if_entity_exist(entity_id)
@@ -77,6 +82,8 @@ class App:
                 )
             component_dict[component_type] = component
 
+        self._query_cache.clear()
+
     def remove_component(self, entity_id: int, *component_types: type):
         self._check_if_entity_exist(entity_id)
         self._deferred_actions.append(
@@ -91,6 +98,8 @@ class App:
                     f"Entity {entity_id} does not have component {component_type}!"
                 )
             component_dict.pop(component_type)
+
+        self._query_cache.clear()
 
     def insert_resource(self, res: Res):
         self._deferred_actions.append(lambda: self._insert_resource(res))
@@ -159,12 +168,17 @@ class App:
                     args.append(self)
                     idx_compensation = -1
                 elif origin is Query:
-                    rows = [
-                        tuple(components[t] for t in queries[idx])
-                        for components in self._entities.values()
-                        if all(t in components for t in queries[idx])
-                    ]
-                    args.append(Query(rows))
+                    if system in self._query_cache:
+                        args.append(self._query_cache[system])
+                    else:
+                        rows = [
+                            tuple(components[t] for t in queries[idx])
+                            for components in self._entities.values()
+                            if all(t in components for t in queries[idx])
+                        ]
+                        query = Query(rows)
+                        self._query_cache[system] = query
+                        args.append(query)
                 else:  # Res
                     res = queries[idx]
                     if res not in self._resources:
