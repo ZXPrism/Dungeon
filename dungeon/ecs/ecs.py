@@ -7,6 +7,7 @@ from dungeon.ecs.plugin import Plugin
 from dungeon.ecs.query import Query
 from dungeon.ecs.resource import Res
 from dungeon.ecs.schedule import Schedule
+from dungeon.ecs.builtin.component import Entity
 
 
 class ActionType(IntEnum):
@@ -51,16 +52,17 @@ class App:
         self._entities[entity_id] = {type(c): c for c in components}
         if len(components) != len(self._entities[entity_id]):
             raise RuntimeError("Detected duplicate components!")
+        self._entities[entity_id][Entity] = Entity(id=entity_id)
 
     def despawn(self, entity_id: int):
-        self._check_if_entity_exist()
+        self._check_if_entity_exist(entity_id)
         self._deferred_actions.append(lambda: self._despawn(entity_id))
 
     def _despawn(self, entity_id: int):
         self._entities.pop(entity_id)
 
     def add_component(self, entity_id: int, *components: object):
-        self._check_if_entity_exist()
+        self._check_if_entity_exist(entity_id)
         self._deferred_actions.append(
             lambda: self._add_component(entity_id, *components)
         )
@@ -76,7 +78,7 @@ class App:
             component_dict[component_type] = component
 
     def remove_component(self, entity_id: int, *component_types: type):
-        self._check_if_entity_exist()
+        self._check_if_entity_exist(entity_id)
         self._deferred_actions.append(
             lambda: self._remove_component(entity_id, *component_types)
         )
@@ -196,3 +198,6 @@ class App:
             self._run_systems(self._systems[Schedule.RenderUpdate])
 
         pygame.quit()
+
+
+# TODO add query caching
