@@ -1,11 +1,21 @@
 import pygame
 
+from enum import IntEnum
 from typing import get_type_hints, get_origin, get_args
 from collections.abc import Callable
 from dungeon.ecs.plugin import Plugin
 from dungeon.ecs.query import Query
 from dungeon.ecs.resource import Res
 from dungeon.ecs.schedule import Schedule
+
+
+class ActionType(IntEnum):
+    SPAWN = 0
+    DESPAWN = 1
+    ADD_COMPONENT = 2
+    REMOVE_COMPONENT = 3
+    INSERT_RESOURCE = 4
+    REMOVE_RESOURCE = 5
 
 
 class App:
@@ -18,7 +28,8 @@ class App:
         self._systems[Schedule.LogicalUpdate] = []
         self._systems[Schedule.RenderUpdate] = []
         self._resources: dict[type, object] = {}
-        self._running = True
+        self._deferred_actions = []
+        self._running = False
 
         pygame.init()
         pygame.display.set_caption(title)
@@ -29,17 +40,71 @@ class App:
     def spawn(self, *components: object) -> int:
         eid = self._next_id
         self._next_id += 1
-        self._entities[eid] = {type(c): c for c in components}
+        self._deferred_actions.append(lambda: self._spawn(eid, *components))
         return eid
 
+    def _spawn(self, entity_id: int, *components: object):
+        self._entities[entity_id] = {type(c): c for c in components}
+        if len(components) != len(self._entities[entity_id]):
+            raise RuntimeError("Detected duplicate components!")
+
+    def despawn(self, entity_id: int):
+        self._deferred_actions.append(lambda: self._despawn(entity_id))
+
+    def _despawn(self, entity_id: int):
+        if entity_id not in self._entities:
+            raise RuntimeError(f"Entity {entity_id} does not exist!")
+        self._entities.pop(entity_id)
+
+    def add_component(self, entity_id: int, *components: object):
+        self._deferred_actions.append(
+            lambda: self._add_component(entity_id, *components)
+        )
+
+    def _add_component(self, entity_id: int, *components: object):
+        if entity_id not in self._entities:
+            raise RuntimeError(f"Entity {entity_id} does not exist!")
+        component_dict = self._entities[entity_id]
+        for component in components:
+            component_type = type(component)
+            if component_type in component_dict:
+                raise RuntimeError(
+                    f"Entity {entity_id} already has component {component_type}!"
+                )
+            component_dict[component_type] = component
+
+    def remove_component(self, entity_id: int, *component_types: type):
+        self._deferred_actions.append(
+            lambda: self._remove_component(entity_id, *component_types)
+        )
+
+    def _remove_component(self, entity_id: int, *component_types: type):
+        # handle: component does not exist
+        raise NotImplementedError("")
+
     def insert_resource(self, res: Res):
+        self._deferred_actions.append(lambda: self._insert_resource(res))
+
+    def _insert_resource(self, res: Res):
         self._resources[type(res)] = res
 
+    def remove_resource(self, res_type: type):
+        self._deferred_actions.append(lambda: self._remove_resource(res_type))
+
+    def _remove_resource(self, res_type: type):
+        # handle: res does not exist
+        raise NotImplementedError("")
+
     def add_plugin(self, plugin: Plugin) -> "App":
+        if self._running == True:
+            raise RuntimeError("It's forbidden to add plugins when the app is running")
         plugin.build(self)
         return self
 
     def add_system(self, schedule: Schedule, system: Callable):
+        if self._running == True:
+            raise RuntimeError("It's forbidden to add plugins when the app is running")
+
         type_hints = get_type_hints(system)
         queries = []
         query_app = False
@@ -100,6 +165,12 @@ class App:
             system(*args)
 
     def run(self):
+        self._running = True
+
+        for action in self._deferred_actions:
+            action()
+        self._deferred_actions.clear()
+
         self._run_systems(self._systems[Schedule.StartUp])
 
         clock = pygame.time.Clock()
@@ -107,11 +178,12 @@ class App:
         while self._running:
             clock.tick(60)
 
+            for action in self._deferred_actions:
+                action()
+            self._deferred_actions.clear()
+
             self._run_systems(self._systems[Schedule.LogicalUpdateHighPriority])
             self._run_systems(self._systems[Schedule.LogicalUpdate])
             self._run_systems(self._systems[Schedule.RenderUpdate])
 
         pygame.quit()
-
-
-# TODO support despawn entities / remove res

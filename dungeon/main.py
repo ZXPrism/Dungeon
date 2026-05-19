@@ -49,6 +49,7 @@ def control(
         res_camera.data.position = pos
 
         # TODO transition on move (both hero & camera)
+        # depends ecs.py TODO
 
 
 def show_dt(res_delta_time: Res[DeltaTime]):
