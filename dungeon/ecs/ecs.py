@@ -37,6 +37,10 @@ class App:
     def set_should_close(self):
         self._running = False
 
+    def _check_if_entity_exist(self, entity_id: int):
+        if entity_id not in self._entities:
+            raise RuntimeError(f"Entity {entity_id} does not exist!")
+
     def spawn(self, *components: object) -> int:
         eid = self._next_id
         self._next_id += 1
@@ -49,21 +53,19 @@ class App:
             raise RuntimeError("Detected duplicate components!")
 
     def despawn(self, entity_id: int):
+        self._check_if_entity_exist()
         self._deferred_actions.append(lambda: self._despawn(entity_id))
 
     def _despawn(self, entity_id: int):
-        if entity_id not in self._entities:
-            raise RuntimeError(f"Entity {entity_id} does not exist!")
         self._entities.pop(entity_id)
 
     def add_component(self, entity_id: int, *components: object):
+        self._check_if_entity_exist()
         self._deferred_actions.append(
             lambda: self._add_component(entity_id, *components)
         )
 
     def _add_component(self, entity_id: int, *components: object):
-        if entity_id not in self._entities:
-            raise RuntimeError(f"Entity {entity_id} does not exist!")
         component_dict = self._entities[entity_id]
         for component in components:
             component_type = type(component)
@@ -74,13 +76,19 @@ class App:
             component_dict[component_type] = component
 
     def remove_component(self, entity_id: int, *component_types: type):
+        self._check_if_entity_exist()
         self._deferred_actions.append(
             lambda: self._remove_component(entity_id, *component_types)
         )
 
     def _remove_component(self, entity_id: int, *component_types: type):
-        # handle: component does not exist
-        raise NotImplementedError("")
+        component_dict = self._entities[entity_id]
+        for component_type in component_types:
+            if component_type not in component_dict:
+                raise RuntimeError(
+                    f"Entity {entity_id} does not have component {component_type}!"
+                )
+            component_dict.pop(component_type)
 
     def insert_resource(self, res: Res):
         self._deferred_actions.append(lambda: self._insert_resource(res))
@@ -89,11 +97,12 @@ class App:
         self._resources[type(res)] = res
 
     def remove_resource(self, res_type: type):
+        if res_type not in self._resources:
+            raise RuntimeError(f"Resource {res_type} does not exist!")
         self._deferred_actions.append(lambda: self._remove_resource(res_type))
 
     def _remove_resource(self, res_type: type):
-        # handle: res does not exist
-        raise NotImplementedError("")
+        self._resources.pop(res_type)
 
     def add_plugin(self, plugin: Plugin) -> "App":
         if self._running == True:
