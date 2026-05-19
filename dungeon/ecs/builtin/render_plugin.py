@@ -37,9 +37,10 @@ def render(
     res_camera: Res[Camera],
     res_render_state: Res[RenderState],
 ):
-    render_state = res_render_state.data
     camera = res_camera.data
+    camera.update()
 
+    render_state = res_render_state.data
     ctx = render_state.ctx
     ctx.screen.use()
     ctx.clear(0.1, 0.1, 0.13, 1.0)
