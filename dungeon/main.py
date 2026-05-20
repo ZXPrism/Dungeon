@@ -39,16 +39,19 @@ def setup(app: App):
     )
 
 
-# TODO support WithOut[...] qualifier
+# TODO textures
+
+
 def control(
     app: App,
-    query: Query[Entity, Hero, Transform],
+    query: Query[Entity, Transform, Hero],
     res_input: Res[Input],
-    res_camera: Res[Camera],
+    _: WithOut[TweenPosition],
 ):
-    for entity, _, transform in query:
+    anim_duration = 0.1
+
+    for entity, transform, _ in query:
         pos = transform.position
-        res_camera.data.position = pos
 
         input_state = res_input.data
         if input_state.just_pressed(pygame.K_w):
@@ -57,7 +60,7 @@ def control(
             app.add_component(
                 entity.id,
                 TweenPosition(
-                    duration=0.1,
+                    duration=anim_duration,
                     elapsed=0.0,
                     start=pos,
                     end=target_pos,
@@ -70,7 +73,7 @@ def control(
             app.add_component(
                 entity.id,
                 TweenPosition(
-                    duration=0.1,
+                    duration=anim_duration,
                     elapsed=0.0,
                     start=pos,
                     end=target_pos,
@@ -83,7 +86,7 @@ def control(
             app.add_component(
                 entity.id,
                 TweenPosition(
-                    duration=0.1,
+                    duration=anim_duration,
                     elapsed=0.0,
                     start=pos,
                     end=target_pos,
@@ -96,13 +99,20 @@ def control(
             app.add_component(
                 entity.id,
                 TweenPosition(
-                    duration=0.1,
+                    duration=anim_duration,
                     elapsed=0.0,
                     start=pos,
                     end=target_pos,
                     easing=AnimationEasing.LINEAR,
                 ),
             )
+
+
+def follow_camera(
+    query: Query[Transform, Hero],
+    res_camera: Res[Camera],
+):
+    res_camera.data.position = query[0][0].position
 
 
 def show_dt(res_delta_time: Res[DeltaTime]):
@@ -115,6 +125,7 @@ class GameCore(Plugin):
     def build(self, app: App):
         app.add_system(Schedule.StartUp, setup)
         app.add_system(Schedule.LogicalUpdate, control)
+        app.add_system(Schedule.LogicalUpdate, follow_camera)
         app.add_system(Schedule.LogicalUpdate, show_dt)
 
 

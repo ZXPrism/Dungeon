@@ -2,12 +2,15 @@ import pygame
 
 from enum import IntEnum
 from typing import get_type_hints, get_origin, get_args
+from rich import print
 from collections.abc import Callable
+from collections import defaultdict
 from dungeon.ecs.plugin import Plugin
 from dungeon.ecs.query import Query
 from dungeon.ecs.resource import Res
 from dungeon.ecs.schedule import Schedule
 from dungeon.ecs.builtin.component import Entity
+from dungeon.ecs.qualifier import WithOut
 
 
 class ActionType(IntEnum):
@@ -28,6 +31,7 @@ class App:
         self._systems[Schedule.LogicalUpdateHighPriority] = []
         self._systems[Schedule.LogicalUpdate] = []
         self._systems[Schedule.RenderUpdate] = []
+        self._without_filter: dict[Callable, set] = defaultdict(set)
         self._query_cache: dict[Callable, Query] = {}
         self._resources: dict[type, object] = {}
         self._deferred_actions = []
@@ -128,6 +132,7 @@ class App:
         type_hints = get_type_hints(system)
         queries = []
         query_app = False
+        has_without = False
 
         for annotation in type_hints.values():
             origin = get_origin(annotation) or annotation
@@ -147,6 +152,13 @@ class App:
                         "System function can only have at most one `App` argument!"
                     )
                 query_app = True
+            elif origin is WithOut:
+                if has_without:
+                    raise RuntimeError(
+                        "System function can only have at most one `WithOut` qualifier!"
+                    )
+                has_without = True
+                self._without_filter[system].update(component_type)
             else:
                 raise RuntimeError(
                     f"Found invalid type {origin} in system function arguments!"
@@ -171,15 +183,19 @@ class App:
                     if system in self._query_cache:
                         args.append(self._query_cache[system])
                     else:
+                        without_filter = self._without_filter[system]
                         rows = [
                             tuple(components[t] for t in queries[idx])
                             for components in self._entities.values()
                             if all(t in components for t in queries[idx])
+                            and all(t not in without_filter for t in components)
                         ]
                         query = Query(rows)
                         self._query_cache[system] = query
                         args.append(query)
-                else:  # Res
+                elif origin is WithOut:
+                    args.append(())
+                elif origin is Res:
                     res = queries[idx]
                     if res not in self._resources:
                         raise RuntimeError(
@@ -212,6 +228,3 @@ class App:
             self._run_systems(self._systems[Schedule.RenderUpdate])
 
         pygame.quit()
-
-
-# TODO add query caching

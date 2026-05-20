@@ -1,0 +1,2 @@
+class WithOut[*Ts]:
+    pass

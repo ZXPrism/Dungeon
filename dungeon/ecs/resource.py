@@ -1,3 +1,3 @@
-class Res[Ts]:
-    def __init__(self, data: Ts):
+class Res[T]:
+    def __init__(self, data: T):
         self.data = data

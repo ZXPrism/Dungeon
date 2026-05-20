@@ -31,8 +31,8 @@ class TileType(IntEnum):
 
 
 # mainly a port of https://github.com/munificent/hauberk/blob/db360d9efa714efb6d937c31953ef849c7394a39/lib/src/content/dungeon.dart
-def dungeon_gen(app: App, query: Res[DungeonConfig]):
-    config = query.data
+def dungeon_gen(app: App, res_dungeon_config: Res[DungeonConfig]):
+    config = res_dungeon_config.data
 
     if config.dungeon_width < 5 or config.dungeon_height < 5:
         raise RuntimeError("The dungeon is too small!")
