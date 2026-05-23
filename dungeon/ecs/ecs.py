@@ -205,12 +205,15 @@ class App:
 
             system(*args)
 
-    def run(self):
-        self._running = True
-
+    def _flush_deferred_actions(self):
         for action in self._deferred_actions:
             action()
         self._deferred_actions.clear()
+
+    def run(self):
+        self._running = True
+
+        self._flush_deferred_actions()
 
         self._run_systems(self._systems[Schedule.StartUp])
 
@@ -219,9 +222,7 @@ class App:
         while self._running:
             clock.tick(60)
 
-            for action in self._deferred_actions:
-                action()
-            self._deferred_actions.clear()
+            self._flush_deferred_actions()
 
             self._run_systems(self._systems[Schedule.LogicalUpdateHighPriority])
             self._run_systems(self._systems[Schedule.LogicalUpdate])

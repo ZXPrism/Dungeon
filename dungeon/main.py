@@ -12,18 +12,19 @@ from dungeon.ecs.builtin.component import (
     Entity,
     Layer,
     Transform,
-    Texture,
+    TextureArray,
     TweenPosition,
     AnimationEasing,
 )
-from dungeon.ecs.builtin.resource import DeltaTime, Input, Camera
+from dungeon.ecs.builtin.resource import DeltaTime, Input, Camera, ResourceLoader
 from dungeon.ecs.builtin.render_plugin import RenderPlugin
+from dungeon.ecs.builtin.render_state import RenderState
 from dungeon.ecs.builtin.input_plugin import InputPlugin
 from dungeon.ecs.builtin.time_plugin import TimePlugin
 from dungeon.ecs.builtin.animation_plugin import AnimationPlugin
 from dungeon.dungeon_gen import DungeonGen
 
-VERSION = "Dungeon v0.1.0-b260518"
+VERSION = "Dungeon v0.1.0-b260523"
 
 
 class Hero:
@@ -31,15 +32,12 @@ class Hero:
 
 
 def setup(app: App):
-    hero_entity = app.spawn(
+    app.spawn(
         Hero(),
         Transform(np.array([0.0, 0.0]), np.array([1.0, 1.0])),
-        Texture(np.array((0, 255, 0, 255)) / 255),
+        TextureArray(name="hero", subname="main"),
         Layer(id=1),
     )
-
-
-# TODO textures
 
 
 def control(
@@ -121,12 +119,21 @@ def show_dt(res_delta_time: Res[DeltaTime]):
     pygame.display.set_caption(f"{VERSION} [dt={dt:.3f} | fps={fps:.0f}]")
 
 
+def load_resources(
+    res_resource_loader: Res[ResourceLoader], res_render_state: Res[RenderState]
+):
+    resource_loader = res_resource_loader.data
+    render_state = res_render_state.data
+    resource_loader.load_resources("assets/meta.json", render_state)
+
+
 class GameCore(Plugin):
     def build(self, app: App):
         app.add_system(Schedule.StartUp, setup)
         app.add_system(Schedule.LogicalUpdate, control)
         app.add_system(Schedule.LogicalUpdate, follow_camera)
         app.add_system(Schedule.LogicalUpdate, show_dt)
+        app.add_plugin(DungeonGen())
 
 
 def main():
@@ -138,7 +145,9 @@ def main():
     app.add_plugin(InputPlugin())
     app.add_plugin(AnimationPlugin())
     app.add_plugin(GameCore())
-    app.add_plugin(DungeonGen())
+    app.insert_resource(ResourceLoader())
+    app.add_system(Schedule.StartUp, load_resources)
+
     app.run()
 
 

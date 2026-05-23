@@ -5,7 +5,7 @@ import numpy as np
 from enum import IntEnum
 from dataclasses import dataclass
 from dungeon.ecs import *
-from dungeon.ecs.builtin.component import Transform, Texture, Layer
+from dungeon.ecs.builtin.component import Transform, TextureArray, Layer
 
 
 @dataclass
@@ -223,41 +223,31 @@ def dungeon_gen(app: App, res_dungeon_config: Res[DungeonConfig]):
                 done = False
                 dungeon[y][x] = TileType.WALL
 
-    # Generate debug color for each region
-    floor_colors = []
-    for _ in range(current_region + 1):
-        floor_color = np.ones((4,)) * 255.0
-        floor_color[:3] = np.random.randint(0, 255, (3,)) / 255
-        floor_colors.append(floor_color)
-    wall_color = np.array((50, 50, 50, 255)) / 255
-    floor_color = np.array((255, 255, 255, 255)) / 255
-    door_color = np.array((222, 184, 135, 255)) / 255
-
     for y in range(config.dungeon_height):
         for x in range(config.dungeon_width):
             match dungeon[y][x]:
                 case TileType.ROOM:
                     app.spawn(
                         Transform(np.array([x, y]), np.array([1.0, 1.0])),
-                        Texture(floor_colors[region_idx[y][x]]),
+                        TextureArray(name="map", subname="room"),
                         Layer(id=2),
                     )
                 case TileType.WALL:
                     app.spawn(
                         Transform(np.array([x, y]), np.array([1.0, 1.0])),
-                        Texture(wall_color),
+                        TextureArray(name="map", subname="wall"),
                         Layer(id=2),
                     )
                 case TileType.FLOOR:
                     app.spawn(
                         Transform(np.array([x, y]), np.array([1.0, 1.0])),
-                        Texture(floor_color),
+                        TextureArray(name="map", subname="floor"),
                         Layer(id=2),
                     )
                 case TileType.DOOR:
                     app.spawn(
                         Transform(np.array([x, y]), np.array([1.0, 1.0])),
-                        Texture(door_color),
+                        TextureArray(name="map", subname="door"),
                         Layer(id=2),
                     )
 

@@ -1,44 +1,37 @@
 import numpy as np
 import pygame
 import moderngl
+import dungeon.shader.quad as quad_shader
 
-from dataclasses import dataclass
+from dungeon.ecs.builtin.render_state import RenderState
 from dungeon.ecs.query import Query
-from dungeon.ecs.builtin.component import Transform, Texture, Layer
+from dungeon.ecs.builtin.component import Transform, TextureArray, Layer
 from dungeon.ecs.resource import Res
-from dungeon.ecs.builtin.resource import Camera
+from dungeon.ecs.builtin.resource import Camera, ResourceLoader
 from dungeon.ecs.plugin import Plugin
 from dungeon.ecs.schedule import Schedule
 from dungeon.ecs.ecs import App
-import dungeon.shader.quad as quad_shader
 
 INSTANCE_DTYPE = np.dtype(
     [
         ("pos", "f4", 2),
         ("scale", "f4", 2),
-        ("color", "f4", 4),
+        ("texture_id", "u4", 1),
     ]
 )
 INITIAL_CAPACITY_INSTANCE_VBO = 4096
 
 
-@dataclass
-class RenderState:
-    width: int
-    height: int
-    ctx: moderngl.Context
-    quad_vao: moderngl.VertexArray
-    quad_instance_vbo: moderngl.Buffer
-    quad_program: moderngl.Program
-
-
 def render(
-    query: Query[Transform, Texture, Layer],
+    query: Query[Transform, TextureArray, Layer],
     res_camera: Res[Camera],
     res_render_state: Res[RenderState],
+    res_resource_loader: Res[ResourceLoader],
 ):
     camera = res_camera.data
     camera.update()
+
+    resource_loader = res_resource_loader.data
 
     render_state = res_render_state.data
     ctx = render_state.ctx
@@ -59,13 +52,28 @@ def render(
     indices = [i for i in range(n_instance)]
     indices.sort(key=lambda x: query[x][2].id, reverse=True)
 
+    texture_array_slot: dict[str, int] = {}
+
     for i in range(n_instance):
         entry = query[indices[i]]
         transform = entry[0]
-        texture = entry[1]
+        texture_array = entry[1]
+
+        name = texture_array.name
+        if name not in texture_array_slot:
+            slot = len(texture_array_slot)
+            texture_array_slot[name] = slot
+
+            texture_array_handle = resource_loader.get_texture_array(name)
+            texture_array_handle.use(slot)
+            render_state.quad_program[f"texture_array_sampler_{slot}"] = slot
+
+        subname = texture_array.subname
+        layer_index = resource_loader.get_texture_array_layer_index(name, subname)
+
         instance_data[i]["pos"] = transform.position
         instance_data[i]["scale"] = transform.scale
-        instance_data[i]["color"] = texture.color
+        instance_data[i]["texture_id"] = texture_array_slot[name] + (layer_index << 4)
 
     quad_instance_vbo.write(instance_data.tobytes())
     render_state.quad_program["view"].write(camera.view.tobytes())
@@ -105,8 +113,14 @@ class RenderPlugin(Plugin):
             vertex_shader=quad_shader.get_vertex_shader(),
             fragment_shader=quad_shader.get_fragment_shader(),
         )
-        quad_vertices = np.array(
-            [-0.5, -0.5, 0.5, -0.5, 0.5, 0.5, -0.5, 0.5], dtype="f4"
+        quad_vertices = np.concat(
+            [
+                [-0.5, -0.5, 0.0, 1.0],
+                [0.5, -0.5, 1.0, 1.0],
+                [0.5, 0.5, 1.0, 0.0],
+                [-0.5, 0.5, 0.0, 0.0],
+            ],
+            dtype="f4",
         )
         quad_indices = np.array([0, 1, 2, 0, 2, 3], dtype="u4")
 
@@ -119,13 +133,13 @@ class RenderPlugin(Plugin):
         quad_vao = ctx.vertex_array(
             quad_program,
             [
-                (quad_vbo, "2f", "in_quad"),
+                (quad_vbo, "4f", "in_quad"),
                 (
                     quad_instance_vbo,
-                    "2f 2f 4f /i",
+                    "2f 2f 1u /i",
                     "in_inst_pos",
                     "in_inst_scale",
-                    "in_inst_color",
+                    "in_inst_texture_id",
                 ),
             ],
             index_buffer=quad_ebo,

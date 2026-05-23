@@ -2,7 +2,7 @@ import copy
 
 from enum import IntEnum
 from dataclasses import dataclass
-from dungeon.type import vec2, vec4
+from dungeon.type import vec2
 
 # =======
 #  basic
@@ -30,11 +30,9 @@ class Entity:
 
 
 @dataclass
-class Texture:
-    color: vec4  # HACK
-
-    def __post_init__(self):
-        self.color = copy.copy(self.color)
+class TextureArray:
+    name: str
+    subname: str
 
 
 @dataclass

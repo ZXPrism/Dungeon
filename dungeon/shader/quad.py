@@ -1,20 +1,22 @@
 def get_vertex_shader():
     return """
 #version 450 core
-layout(location = 0) in vec2 in_quad;
+layout(location = 0) in vec4 in_quad;
 layout(location = 1) in vec2 in_inst_pos;
 layout(location = 2) in vec2 in_inst_scale;
-layout(location = 3) in vec4 in_inst_color;
+layout(location = 3) in uint in_inst_texture_id;
 
 uniform mat4 view;
 uniform mat4 projection;
 
-out vec4 quad_color;
+out vec2 uv;
+out flat uint texture_id;
 
 void main() {
-    vec2 world = (in_quad * in_inst_scale) + in_inst_pos;
+    vec2 world = (in_quad.xy * in_inst_scale) + in_inst_pos;
     gl_Position = projection * view * vec4(world, 0.0, 1.0);
-    quad_color = in_inst_color;
+    uv = in_quad.zw;
+    texture_id = in_inst_texture_id;
 }
 
 """
@@ -25,10 +27,20 @@ def get_fragment_shader():
 #version 450 core
 layout(location = 0) out vec4 frag_color;
 
-in vec4 quad_color;
+in flat uint texture_id;
+in vec2 uv;
+
+uniform sampler2DArray texture_array_sampler_0;
+uniform sampler2DArray texture_array_sampler_1;
 
 void main() {
-    frag_color = quad_color;
+    uint texture_array_id = texture_id & 0xf;
+    uint texture_array_layer_index = texture_id >> 4;
+    if (texture_array_id == 0u) {
+        frag_color = texture(texture_array_sampler_0, vec3(uv, float(texture_array_layer_index)));
+    } else if (texture_array_id == 1u) {
+        frag_color = texture(texture_array_sampler_1, vec3(uv, float(texture_array_layer_index)));
+    }
 }
 
 """

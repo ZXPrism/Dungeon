@@ -1,0 +1,36 @@
+{
+    "textures": [
+        {
+            "name": "map",
+            "type": "array",
+            "data": [
+                {
+                    "subname": "room",
+                    "path": "assets/textures/map/room.png"
+                },
+                {
+                    "subname": "floor",
+                    "path": "assets/textures/map/floor.png"
+                },
+                {
+                    "subname": "wall",
+                    "path": "assets/textures/map/wall.png"
+                },
+                {
+                    "subname": "door",
+                    "path": "assets/textures/map/door.png"
+                }
+            ]
+        },
+        {
+            "name": "hero",
+            "type": "array",
+            "data": [
+                {
+                    "subname": "main",
+                    "path": "assets/textures/hero/main.png"
+                }
+            ]
+        }
+    ]
+}
